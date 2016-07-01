@@ -16,26 +16,46 @@ class ViewController: UIViewController {
         view.backgroundColor = .whiteColor()
         title = "Sample"
         
-        view.addSubview(rw)
-        rw.snp_makeConstraints { (make) in
-            make.center.equalTo(view)
-            make.width.height.equalTo(300)
-        }
-        
-//        test()
+        let v = RotateWheel(6,wheelRadius: 120,cellType: Rotate.self)
+        v.delegate = self
+        view.addSubview(v)
+        v.center = view.center
     }
-    
-    func test() {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(3 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-            self.rw.piece = Int(arc4random_uniform(10))
-            self.test()
-        }
-    }
-    
-    lazy var rw: RotateWheel = {
-        let v = RotateWheel(7)
-        v.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.3)
-        return v
-    }()
 }
 
+extension ViewController: RotateWheelDelegate {
+    func rotateWheel(rotateWheel: RotateWheel, initCell cell: RotateWheelCell, forPiece piece: Int) {
+        guard let c = cell as? Rotate else { return }
+        
+        c.lb.text = "gogo"
+        c.lb.bounds.size = CGSize(width: 100, height: 50)
+        let sz = c.container.bounds.size
+        c.lb.center = CGPoint(x: sz.width/2, y: sz.height/2)
+    }
+    
+    func rotateWheel(rotateWheel: RotateWheel, configCell cell: RotateWheelCell, forPiece piece: Int) {
+        guard let c = cell as? Rotate else { return }
+        
+        c.lb.text = "gogo"
+        c.lb.sizeToFit()
+        let sz = c.container.bounds.size
+        c.lb.center = CGPoint(x: sz.width/2, y: sz.height/2)
+        
+    }
+    
+}
+
+class Rotate: RotateWheelCell {
+     required init(frame: CGRect) {
+        super.init(frame: frame)
+        lb.textAlignment = .Center
+        container.addSubview(lb)
+        container.backgroundColor = UIColor(hue: CGFloat(arc4random_uniform(255))/255, saturation: 1, brightness: 1, alpha: 1).colorWithAlphaComponent(0.3)
+    }
+    
+    var lb = UILabel()
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
