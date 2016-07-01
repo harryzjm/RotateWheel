@@ -21,10 +21,18 @@ class ViewController: UIViewController {
             make.center.equalTo(view)
             make.width.height.equalTo(300)
         }
+        
+//        test()
+    }
+    
+    func test() {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(3 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+            self.rw.piece = Int(arc4random_uniform(10))
+            self.test()
+        }
     }
     
     lazy var rw: RotateWheel = {
-        //        let v = RotateWheel(7, frame: CGRect(x: 0, y: 0, width: 300, height: 300))
         let v = RotateWheel(7)
         v.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.3)
         return v

@@ -10,12 +10,28 @@ import Foundation
 import UIKit
 
 class PieceCell: UIView {
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         layer.anchorPoint = CGPoint(x: 1, y: 0.5)
         userInteractionEnabled = false
+        
+        container.backgroundColor = UIColor.random
+        backgroundColor = container.backgroundColor?.colorWithAlphaComponent(0.2)
+        
+        addSubview(container)
+        container.snp_makeConstraints { (make) in
+            make.centerWithinMargins.equalTo(self)
+            make.width.equalTo(self).dividedBy(3)
+            make.height.equalTo(self).dividedBy(3)
+        }
     }
+    
+    lazy var container: UIView = {
+        let v = UIView()
+        return v
+    }()
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -28,7 +44,9 @@ protocol RotateWheelDelegate {
 }
 
 class RotateWheel: UIControl {
-    var piece: Int = 0
+    var piece: Int {
+        didSet { setNeedsLayout();layoutIfNeeded() }
+    }
     
     var pieceAngle: CGFloat { return 2 * CGFloat( M_PI ) / CGFloat( piece ) }
     var radius: CGFloat { return min(bounds.width, bounds.height) / 2 }
@@ -37,11 +55,10 @@ class RotateWheel: UIControl {
     var startTransform = CGAffineTransformIdentity
     
     init(_ cellPiece: Int, frame: CGRect = CGRectZero) {
+        piece = cellPiece
         super.init(frame: frame)
         
-        piece = cellPiece
         initUI()
-        
         refreshUI()
     }
     
@@ -67,29 +84,31 @@ class RotateWheel: UIControl {
         (0 ..< piece).forEach { (i) in
             let rt = CGRect(x: 0, y: 0, width: radius, height: radius * 2/3)
             let v = PieceCell(frame: rt)
+            
             v.layer.position = CGPoint(x: radius, y: radius)
             v.transform = CGAffineTransformMakeRotation(pieceAngle * CGFloat(i))
-            v.backgroundColor = UIColor(hue: CGFloat( arc4random_uniform(255) ) / 255, saturation: 1, brightness: 1, alpha: 1)
             
             container.addSubview(v)
         }
+        adaptSubview()
     }
     
     override func layoutSubviews() {
         container.subviews.forEach { $0.removeFromSuperview() }
         super.layoutSubviews()
-        print("layoutSubviews")
         refreshUI()
     }
     
-//    func transformParameterView()
-//    {
-//        for (UIView *tmpV in _inforDic.allValues) {
-//            CGAffineTransform containerTransfrom = CGAffineTransformInvert(tmpV.superview.transform);
-//            CGAffineTransform selfTransfrom = CGAffineTransformInvert(tmpV.superview.superview.transform);
-//            tmpV.transform = CGAffineTransformRotate(CGAffineTransformConcat(containerTransfrom, selfTransfrom), M_PI_2);
-//        }
-//    }
+    func adaptSubview()
+    {
+        container.subviews.forEach { (view) in
+            guard let cell = view as? PieceCell else { return }
+            let containerTransfrom = CGAffineTransformInvert(cell.transform);
+            let selfTransfrom = CGAffineTransformInvert(container.transform);
+            cell.container.transform = CGAffineTransformRotate(CGAffineTransformConcat(containerTransfrom, selfTransfrom), CGFloat( M_PI_2 ));
+
+        }
+    }
 }
 
 extension RotateWheel {
@@ -106,7 +125,7 @@ extension RotateWheel {
         
         let angleDifference = atan2(point.y - container.center.y, point.x - container.center.x) - startAngle
         container.transform = CGAffineTransformRotate(startTransform, angleDifference)
-        
+        adaptSubview()
         return true
     }
     
@@ -119,25 +138,23 @@ extension RotateWheel {
     }
     
     func endTrack() {
-        let angle = atan2(container.transform.b, container.transform.a) % pieceAngle
         
-        var value: CGFloat = 0
-        if angle > 0 {
-            value = angle > pieceAngle/2 ? pieceAngle - angle:-angle
-        } else {
-            value = -angle > pieceAngle/2 ? -angle - pieceAngle:-angle
-        }
+        let angle = atan2(container.transform.b, container.transform.a) % pieceAngle
+        let value = abs(angle) > pieceAngle/2 ? angle > 0 ? pieceAngle - angle:-angle - pieceAngle:-angle
         
         UIView.animateWithDuration(0.2, delay: 0, options: .CurveEaseIn, animations: {
             [weak self] in
             guard let wSelf = self else { return }
             wSelf.container.transform = CGAffineTransformRotate(wSelf.container.transform, value)
+            wSelf.adaptSubview()
             }, completion: nil)
     }
 }
 
 
-
+extension UIColor {
+    class var random: UIColor { return UIColor(hue: CGFloat( arc4random_uniform(255) ) / 255, saturation: 1, brightness: 1, alpha: 1) }
+}
 
 
 
