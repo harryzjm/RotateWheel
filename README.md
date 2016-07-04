@@ -1,19 +1,30 @@
-# RotateWheel
-RotateWheel code
+RotateWheel
+==============
 
-## Introduction  
-RotateWheel code
+![show](./Logo/RotateWheel.gif)  
+
+## Requirements
+
+- iOS 8.0+
+- Xcode 7.0
 
 ## Installation
-#### Source File
+#### Source File  
 
-RotateWheel code
+Simply add the file in Source directory into your project.
 
 ## Usage
+### Creating and Add
+
 ```swift
 
+let v = RotateWheel(6,wheelRadius: 120,cellType: Rotate.self)
+v.delegate = self
+view.addSubview(v)
 
 ```
+
+Please see sample code to get more detail. 
 
 ## Communication
 
